@@ -1,0 +1,13 @@
+{
+  "name": "@svuppala-3fa85f64-5717-4562-b3fc-2c963f66afa6/source",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {},
+  "private": true,
+  "dependencies": {},
+  "devDependencies": {
+    "@nx/js": "22.3.3",
+    "@nx/workspace": "22.3.3",
+    "nx": "22.3.3"
+  }
+}
