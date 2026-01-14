@@ -1,0 +1,319 @@
+<div class="min-h-screen bg-gradient-to-b from-slate-50 to-white p-4">
+  <div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="rounded-2xl shadow bg-white/80 backdrop-blur border border-slate-100 p-4 mb-4">
+      <div class="flex items-start justify-between gap-4">
+        <div class="min-w-0">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h1 class="text-2xl font-semibold text-slate-900">Tasks</h1>
+
+            <!-- Role badge beside Tasks -->
+            <span *ngIf="userRole" class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold
+                     border border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100 text-slate-700">
+              <span class="h-2 w-2 rounded-full" [class.bg-emerald-500]="userRole !== 'Viewer'"
+                [class.bg-indigo-500]="userRole === 'Viewer'"></span>
+              {{ userRole }}
+            </span>
+
+            <span *ngIf="isViewer"
+              class="text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1">
+              Read-only mode
+            </span>
+          </div>
+
+          <p class="text-sm text-slate-500 mt-1">
+            Drag tasks between columns to change status (disabled for Viewer). Reorder within a column by dragging.
+          </p>
+        </div>
+
+        <button class="text-sm font-medium text-slate-700 hover:text-slate-900 underline" (click)="logout()">
+          Logout
+        </button>
+      </div>
+
+      <!-- Viewer banner -->
+      <div *ngIf="isViewer" class="mt-3 rounded-xl bg-indigo-50 text-indigo-800 text-sm p-3 border border-indigo-100">
+        You are logged in as <b>Viewer</b>. Creating, deleting, and drag/drop reordering are disabled.
+      </div>
+
+      <!-- Error / Loading -->
+      <div *ngIf="error" class="mt-3 rounded-xl bg-rose-50 text-rose-800 text-sm p-3 border border-rose-100">
+        {{ error }}
+      </div>
+
+      <div *ngIf="loading" class="mt-3 rounded-xl bg-amber-50 text-amber-800 text-sm p-3 border border-amber-100">
+        Loading...
+      </div>
+    </div>
+
+    <!-- Create Task (hidden for Viewer) -->
+    <div *ngIf="!isViewer" class="bg-white rounded-2xl shadow p-4 mb-4 border border-slate-100">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-semibold text-slate-900">Create Task</h2>
+        <button class="text-sm underline text-slate-600 hover:text-slate-900" (click)="refresh()">Refresh</button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
+        <input [(ngModel)]="newTitle" placeholder="Task title"
+          class="md:col-span-3 border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900/20" />
+
+        <input [(ngModel)]="newCategory" placeholder="Category (Work/Personal)"
+          class="md:col-span-2 border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900/20" />
+        <textarea [(ngModel)]="newDescription" placeholder="Description (optional)" rows="1"
+          class="md:col-span-5 border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900/20"></textarea>
+
+        <button (click)="createTask()" class="md:col-span-1 rounded-xl bg-gradient-to-r from-slate-900 to-slate-700 text-white p-2.5
+                 hover:opacity-95 active:scale-[0.99] transition">
+          Add
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-2xl shadow p-4 mb-4 border border-slate-100">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-semibold text-slate-900">Filters</h2>
+        <button class="text-sm underline text-slate-600 hover:text-slate-900" (click)="refresh()">Refresh</button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+        <input [(ngModel)]="categoryFilter" placeholder="Filter by category"
+          class="border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900/20" />
+
+        <select [(ngModel)]="statusFilter"
+          class="border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900/20">
+          <option value="">All statuses</option>
+          <option value="Todo">Todo</option>
+          <option value="InProgress">InProgress</option>
+          <option value="Done">Done</option>
+        </select>
+
+        <select [(ngModel)]="sortBy"
+          class="border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900/20">
+          <option value="order">Sort: Board Order</option>
+          <option value="title">Sort: Title (A–Z)</option>
+          <option value="category">Sort: Category (A–Z)</option>
+        </select>
+
+        <button class="rounded-xl bg-slate-900 text-white p-2.5 hover:opacity-95 transition"
+          (click)="applyFiltersAndRefresh()">
+          Apply
+        </button>
+
+        <button class="rounded-xl border border-slate-200 p-2.5 hover:bg-slate-50 transition" (click)="clearFilters()">
+          Clear
+        </button>
+      </div>
+    </div>
+    <!-- Board -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Todo -->
+      <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
+        <div
+          class="px-4 py-3 bg-gradient-to-r from-sky-50 to-white border-b border-slate-100 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="h-2.5 w-2.5 rounded-full bg-sky-500"></span>
+            <h2 class="font-semibold text-slate-900">Todo</h2>
+          </div>
+          <span class="text-xs font-semibold text-sky-700 bg-sky-50 border border-sky-100 rounded-full px-2 py-0.5">
+            {{ todo.length }}
+          </span>
+        </div>
+
+        <div #todoList="cdkDropList" cdkDropList [cdkDropListData]="todo"
+          [cdkDropListConnectedTo]="[inProgressList, doneList]" [cdkDropListDisabled]="isViewer"
+          (cdkDropListDropped)="drop('Todo', $event)" class="p-4 space-y-3 min-h-[220px]">
+          <div *ngFor="let t of todo" cdkDrag [cdkDragDisabled]="isViewer"
+            class="group border border-slate-200 rounded-2xl p-3 bg-white">
+            <div class="flex justify-between gap-2">
+              <div class="min-w-0">
+                <div class="font-semibold text-slate-900 truncate">{{ t.title }}</div>
+                <div class="text-xs text-slate-500 mt-0.5">
+                  <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 border border-slate-200">
+                    {{ t.category }}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <button *ngIf="!isViewer" class="text-xs font-medium text-slate-700 hover:text-slate-900 underline mr-3"
+                  (click)="openEdit(t)">
+                  Edit
+                </button>
+
+                <button *ngIf="!isViewer" class="text-xs font-medium text-rose-600 hover:text-rose-700 underline"
+                  (click)="deleteTask(t)">
+                  Delete
+                </button>
+              </div>
+            </div>
+
+            <div class="text-sm text-slate-700 mt-2 whitespace-pre-line" *ngIf="t.description">
+              {{ t.description }}
+            </div>
+
+            <div class="mt-2 text-[11px] text-slate-400 opacity-0 group-hover:opacity-100 transition">
+              Drag to reorder • Move across columns
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- In Progress -->
+      <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
+        <div
+          class="px-4 py-3 bg-gradient-to-r from-amber-50 to-white border-b border-slate-100 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="h-2.5 w-2.5 rounded-full bg-amber-500"></span>
+            <h2 class="font-semibold text-slate-900">In Progress</h2>
+          </div>
+          <span
+            class="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-2 py-0.5">
+            {{ inProgress.length }}
+          </span>
+        </div>
+
+        <div #inProgressList="cdkDropList" cdkDropList [cdkDropListData]="inProgress"
+          [cdkDropListConnectedTo]="[todoList, doneList]" [cdkDropListDisabled]="isViewer"
+          (cdkDropListDropped)="drop('InProgress', $event)" class="p-4 space-y-3 min-h-[220px]">
+          <div *ngFor="let t of inProgress" cdkDrag [cdkDragDisabled]="isViewer"
+            class="group border border-slate-200 rounded-2xl p-3 bg-white">
+            <div class="flex justify-between gap-2">
+              <div class="min-w-0">
+                <div class="font-semibold text-slate-900 truncate">{{ t.title }}</div>
+                <div class="text-xs text-slate-500 mt-0.5">
+                  <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 border border-slate-200">
+                    {{ t.category }}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <button *ngIf="!isViewer" class="text-xs font-medium text-slate-700 hover:text-slate-900 underline mr-3"
+                  (click)="openEdit(t)">
+                  Edit
+                </button>
+
+                <button *ngIf="!isViewer" class="text-xs font-medium text-rose-600 hover:text-rose-700 underline"
+                  (click)="deleteTask(t)">
+                  Delete
+                </button>
+              </div>
+            </div>
+
+            <div class="text-sm text-slate-700 mt-2 whitespace-pre-line" *ngIf="t.description">
+              {{ t.description }}
+            </div>
+
+            <div class="mt-2 text-[11px] text-slate-400 opacity-0 group-hover:opacity-100 transition">
+              Drag to reorder • Move across columns
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Done -->
+      <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
+        <div
+          class="px-4 py-3 bg-gradient-to-r from-emerald-50 to-white border-b border-slate-100 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+            <h2 class="font-semibold text-slate-900">Done</h2>
+          </div>
+          <span
+            class="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full px-2 py-0.5">
+            {{ done.length }}
+          </span>
+        </div>
+
+        <div #doneList="cdkDropList" cdkDropList [cdkDropListData]="done"
+          [cdkDropListConnectedTo]="[todoList, inProgressList]" [cdkDropListDisabled]="isViewer"
+          (cdkDropListDropped)="drop('Done', $event)" class="p-4 space-y-3 min-h-[220px]">
+          <div *ngFor="let t of done" cdkDrag [cdkDragDisabled]="isViewer"
+            class="group border border-slate-200 rounded-2xl p-3 bg-white">
+            <div class="flex justify-between gap-2">
+              <div class="min-w-0">
+                <div class="font-semibold text-slate-900 truncate">{{ t.title }}</div>
+                <div class="text-xs text-slate-500 mt-0.5">
+                  <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 border border-slate-200">
+                    {{ t.category }}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <button *ngIf="!isViewer" class="text-xs font-medium text-slate-700 hover:text-slate-900 underline mr-3"
+                  (click)="openEdit(t)">
+                  Edit
+                </button>
+
+                <button *ngIf="!isViewer" class="text-xs font-medium text-rose-600 hover:text-rose-700 underline"
+                  (click)="deleteTask(t)">
+                  Delete
+                </button>
+              </div>
+            </div>
+
+            <div class="text-sm text-slate-700 mt-2 whitespace-pre-line" *ngIf="t.description">
+              {{ t.description }}
+            </div>
+
+            <div class="mt-2 text-[11px] text-slate-400 opacity-0 group-hover:opacity-100 transition">
+              Drag to reorder • Move across columns
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-xs text-slate-500 mt-6">
+      Demo users:
+      <span class="font-mono">owner@demo.com</span>,
+      <span class="font-mono">admin@demo.com</span>,
+      <span class="font-mono">viewer@demo.com</span> (Password: <span class="font-mono">Password123!</span>)
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div *ngIf="editing" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40" (click)="closeEdit()"></div>
+
+    <div class="relative w-full max-w-lg rounded-2xl bg-white shadow-xl border border-slate-100 p-5">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h3 class="text-lg font-semibold text-slate-900">Edit Task</h3>
+          <p class="text-sm text-slate-500">Update title, category and description.</p>
+        </div>
+        <button class="text-sm underline text-slate-600 hover:text-slate-900" (click)="closeEdit()">Close</button>
+      </div>
+
+      <div class="mt-4 space-y-3">
+        <div>
+          <label class="text-sm font-medium text-slate-700">Title</label>
+          <input [(ngModel)]="editTitle"
+            class="mt-1 w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900/20" />
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-slate-700">Category</label>
+          <input [(ngModel)]="editCategory"
+            class="mt-1 w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900/20" />
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-slate-700">Description</label>
+          <textarea [(ngModel)]="editDescription" rows="4"
+            class="mt-1 w-full border border-slate-200 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-slate-900/20"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button class="rounded-xl border border-slate-200 px-4 py-2 hover:bg-slate-50" (click)="closeEdit()">
+            Cancel
+          </button>
+          <button class="rounded-xl bg-slate-900 text-white px-4 py-2 hover:opacity-95" (click)="saveEdit()">
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

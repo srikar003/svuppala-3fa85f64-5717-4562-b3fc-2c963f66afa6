@@ -1,0 +1,27 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020", "DOM"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@svuppala-3fa85f64-5717-4562-b3fc-2c963f66afa6/data": [
+        "data/src/index.ts"
+      ],
+      "@svuppala-3fa85f64-5717-4562-b3fc-2c963f66afa6/auth": [
+        "auth/src/index.ts"
+      ]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}
