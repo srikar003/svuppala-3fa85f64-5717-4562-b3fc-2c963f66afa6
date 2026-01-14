@@ -20,17 +20,9 @@ The system supports secure authentication, fine-grained authorization, task mana
 apps/
 ├── api/            # NestJS backend (JWT, RBAC, Tasks, Audit)
 ├── dashboard/      # Angular frontend (Tasks UI, Insights UI)
-
-libs/
 ├── auth/           # Reusable RBAC decorators & guards
 ├── data/           # Shared DTOs / interfaces
 ```
-
-### Why NX?
-- Encourages clean separation of concerns
-- Enables shared TypeScript contracts
-- Scales well for large teams
-- Promotes modular, testable architecture
 
 ---
 
@@ -208,8 +200,14 @@ Authorization: Bearer <JWT>
 npm install
 ```
 
+### Run SQLite
+```bash
+npx ts-node -P tsconfig.base.json -r tsconfig-paths/register -r dotenv/config api/src/seed.ts
+```
+
 ### Run Backend
 ```bash
+
 npx nx serve api
 ```
 API runs at: `http://localhost:3000`
