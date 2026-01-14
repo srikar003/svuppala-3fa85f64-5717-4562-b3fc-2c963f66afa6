@@ -1,96 +1,254 @@
-# Svuppala3fa85f6457174562B3fc2c963f66afa6
+# 🚀 Secure Task Management System (NX Monorepo)
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+**Repository:** svuppala-3fa85f64-5717-4562-b3fc-2c963f66afa6  
+**Tech Stack:** NX · NestJS · Angular · TypeScript · JWT · RBAC · SQLite · TailwindCSS
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+---
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+## 📌 Overview
 
-## Run tasks
+This project implements a **secure Task Management System** using **role-based access control (RBAC)** in a **modular NX monorepo**.  
+Users authenticate using **JWT**, and access to resources is strictly controlled based on **roles** and **organizational scope**.
 
-To run tasks with Nx use:
+The system supports secure authentication, fine-grained authorization, task management, drag-and-drop UX, audit logging, and clean modular architecture.
 
-```sh
-npx nx <target> <project-name>
+---
+
+## 🗂️ Monorepo Structure (NX Workspace)
+
+```
+apps/
+├── api/            # NestJS backend (JWT, RBAC, Tasks, Audit)
+├── dashboard/      # Angular frontend (Tasks UI, Insights UI)
+
+libs/
+├── auth/           # Reusable RBAC decorators & guards
+├── data/           # Shared DTOs / interfaces
 ```
 
-For example:
+### Why NX?
+- Encourages clean separation of concerns
+- Enables shared TypeScript contracts
+- Scales well for large teams
+- Promotes modular, testable architecture
 
-```sh
-npx nx build myproject
+---
+
+## 🔐 Authentication & Authorization
+
+### Authentication
+- Implemented using **JWT**
+- Login endpoint issues a signed JWT
+- Token payload includes:
+  - `sub` → user ID
+  - `role` → Owner | Admin | Viewer
+  - `orgId` → organization scope
+- JWT is required for all protected endpoints
+
+### Authorization (RBAC)
+
+| Role   | View Tasks | Create | Edit | Delete | View Audit |
+|--------|------------|--------|------|--------|------------|
+| Owner  | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Admin  | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Viewer | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+- RBAC enforced using **NestJS Guards & Decorators**
+- Viewer role is strictly read-only
+- Permissions are enforced in both backend and frontend
+
+---
+
+## 🏢 Data Model & ERD
+
+### Core Entities
+- **User**
+  - id, email, passwordHash
+  - role (Owner/Admin/Viewer)
+  - organizationId
+- **Organization**
+  - Supports a 2-level hierarchy
+- **Task**
+  - title, description, category
+  - status: Todo | InProgress | Done
+  - order (for drag-and-drop)
+  - organizationId
+- **AuditLog**
+  - user, role, action, resource, timestamp
+
+### Entity Relationship Diagram (ERD)
+
+```
++-------------------+        +----------------------+
+|   Organization    |        |        User          |
++-------------------+        +----------------------+
+| id (PK)           |<-------| id (PK)              |
+| name              |   1    | email (unique)       |
+| parentOrgId (FK)  |        | passwordHash         |
++-------------------+        | role                 |
+                             | organizationId (FK)  |
+                             +----------+-----------+
+                                        |
+                                        | 1
+                                        |
+                             +----------v-----------+
+                             |        Task          |
+                             +----------------------+
+                             | id (PK)              |
+                             | title                |
+                             | description           |
+                             | category              |
+                             | status                |
+                             | order                 |
+                             | organizationId (FK)   |
+                             | createdBy (FK)        |
+                             +----------------------+
+
++----------------------+
+|     AuditLog         |
++----------------------+
+| id (PK)              |
+| userId (FK)          |
+| role                 |
+| action               |
+| resource             |
+| timestamp            |
++----------------------+
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+---
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## 🧠 Access Control Implementation
 
-## Add new projects
+- JWT Guard validates authentication
+- Roles Guard validates permissions
+- Organization ID scopes data visibility
+- Viewer:
+  - Cannot create/edit/delete tasks
+  - Drag-and-drop disabled
+- Owner/Admin:
+  - Full access within org scope
+- Audit logs capture allow/deny decisions
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
+---
 
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
+## 🧾 API Endpoints
+
+### Authentication
+```
+POST /auth/login
 ```
 
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
-
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
-
-# Generate a library
-npx nx g @nx/react:lib some-lib
+### Tasks
+```
+POST   /tasks        # Create task (Owner/Admin)
+GET    /tasks        # List accessible tasks
+PUT    /tasks/:id    # Edit task (Owner/Admin)
+DELETE /tasks/:id    # Delete task (Owner/Admin)
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
-
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
+### Audit
+```
+GET /audit-log       # Owner/Admin only
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
+All endpoints require:
+```
+Authorization: Bearer <JWT>
 ```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+---
 
-## Install Nx Console
+## 🖥️ Frontend (Angular + TailwindCSS)
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+### Features
+- Login UI with JWT authentication
+- Task board:
+  - Create / Edit / Delete (role-aware)
+  - Drag-and-drop ordering & status changes
+  - Filters & categories
+- **Insights Page**
+  - Task completion percentage
+  - Progress bar visualization
+  - Category distribution
+- Fully responsive design
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Role-Aware UX
+- Viewer sees read-only UI
+- Restricted actions hidden/disabled
+- Visual role indicator displayed
 
-## Useful links
+---
 
-Learn more:
+## 🧪 Testing Strategy
 
-- [Learn more about this workspace setup](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Backend
+- Unit tests for:
+  - Authentication logic
+  - RBAC rules
+  - Guards
+  - Controller logic
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+*(End-to-end tests intentionally excluded as per clarified scope.)*
+
+### Frontend
+- Role-based behavior verified
+- Component logic separated for testability
+
+---
+
+## ⚙️ Setup Instructions
+
+### Prerequisites
+- Node.js ≥ 18
+- npm
+
+### Install dependencies
+```bash
+npm install
+```
+
+### Run Backend
+```bash
+npx nx serve api
+```
+API runs at: `http://localhost:3000`
+
+### Run Frontend
+```bash
+npx nx serve dashboard
+```
+Dashboard runs at: `http://localhost:4200`
+
+---
+
+## 🔑 Demo Credentials
+
+| Role   | Email             | Password        |
+|--------|------------------|-----------------|
+| Owner  | owner@demo.com   | Password123!    |
+| Admin  | admin@demo.com   | Password123!    |
+| Viewer | viewer@demo.com  | Password123!    |
+
+---
+
+## 📁 Environment Variables
+
+**api/.env**
+```
+JWT_SECRET=supersecretkey
+JWT_EXPIRES_IN=3600s
+```
+
+---
+
+## 🚧 Future Enhancements
+
+- JWT refresh tokens
+- Fine-grained permission matrix
+- RBAC caching
+- Organization delegation
+- Real-time updates (WebSockets)
+- Persistent audit logging
+
+---

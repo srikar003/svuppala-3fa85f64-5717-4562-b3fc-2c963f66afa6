@@ -5,14 +5,14 @@ import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
-
+import { RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { TasksService, Task, TaskStatus } from '../services/tasks.service';
 
 @Component({
   selector: 'app-task-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropModule],
+  imports: [CommonModule, FormsModule, DragDropModule, RouterModule],
   templateUrl: './task-dashboard.html',
   changeDetection: ChangeDetectionStrategy.Default,
 })
