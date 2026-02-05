@@ -1,6 +1,5 @@
 # 🚀 Secure Task Management System (NX Monorepo)
-
-**Repository:** svuppala-3fa85f64-5717-4562-b3fc-2c963f66afa6  
+ 
 **Tech Stack:** NX · NestJS · Angular · TypeScript · JWT · RBAC · SQLite · TailwindCSS
 
 ---
