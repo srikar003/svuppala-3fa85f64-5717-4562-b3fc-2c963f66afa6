@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
-import { Role } from '@svuppala-3fa85f64-5717-4562-b3fc-2c963f66afa6/data';
+import { Role } from '@stms/data';
 import { User } from './entities/user.entity';
 import { Organization } from './entities/organization.entity';
 import { Task } from './entities/task.entity';

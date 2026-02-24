@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, ForbiddenException, Get, NotFoundException, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Roles, RolesGuard } from '@svuppala-3fa85f64-5717-4562-b3fc-2c963f66afa6/auth';
-import { CreateTaskInput, Role, UpdateTaskInput } from '@svuppala-3fa85f64-5717-4562-b3fc-2c963f66afa6/data';
+import { Roles, RolesGuard } from '@stms/auth';
+import { CreateTaskInput, Role, UpdateTaskInput } from '@stms/data';
 import { TasksService } from './tasks.service';
 import { UpdateTaskDto } from './dto/update-task.dto';
 
