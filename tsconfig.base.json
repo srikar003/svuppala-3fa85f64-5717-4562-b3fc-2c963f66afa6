@@ -15,10 +15,10 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@svuppala-3fa85f64-5717-4562-b3fc-2c963f66afa6/data": [
+      "@stms/data": [
         "data/src/index.ts"
       ],
-      "@svuppala-3fa85f64-5717-4562-b3fc-2c963f66afa6/auth": [
+      "@stms/auth": [
         "auth/src/index.ts"
       ]
     }

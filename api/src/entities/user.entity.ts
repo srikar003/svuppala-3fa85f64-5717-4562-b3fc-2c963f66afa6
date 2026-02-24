@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
-import { Role } from '@svuppala-3fa85f64-5717-4562-b3fc-2c963f66afa6/data';
+import { Role } from '@stms/data';
 
 @Entity()
 export class User {

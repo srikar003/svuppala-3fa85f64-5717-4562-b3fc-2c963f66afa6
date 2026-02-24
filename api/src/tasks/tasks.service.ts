@@ -4,7 +4,7 @@ import { In, Repository } from 'typeorm';
 import { Task } from '../entities/task.entity';
 import { AuditLog } from '../entities/audit-log.entity';
 import { Organization } from '../entities/organization.entity';
-import { CreateTaskInput, Role, UpdateTaskInput, JwtUser } from '@svuppala-3fa85f64-5717-4562-b3fc-2c963f66afa6/data';
+import { CreateTaskInput, Role, UpdateTaskInput, JwtUser } from '@stms/data';
 import { UpdateTaskDto } from './dto/update-task.dto';
 
 @Injectable()
